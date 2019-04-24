@@ -37,7 +37,7 @@ switch ($oPage->getOutputtype()) {
                 <div class="pull-right hidden-xs">
                   <b>Version</b> ' . $aEnv["project"]["version"] . ' (' . $aEnv["project"]["releasedate"] . ')
                 </div>
-                <strong>Axel pimped the Apache status 4U</strong>
+                <strong>Apache Status provided by Axel</strong>
                 <ul>' . $oDatarenderer->renderLI($aEnv["links"]["project"]) . '</ul>
             </footer>
             <script>initPage();</script>

@@ -7,7 +7,7 @@
         
         <meta name="robots" content="noindex, nofollow" />
 
-        <title>Pimped Apache Status 2</title>
+        <title>Apache Status</title>
         
         <script src="{{APPDIR}}/javascript/functions.min.js" type="text/javascript"></script>
         <script src="{{APPDIR}}/javascript/counterhistory.class.min.js" type="text/javascript"></script>
