@@ -1,5 +1,4 @@
 <?php
-global $aLangTxt;
 $aLangTxt = array(
 
     'id'=>'deutsch',
@@ -32,6 +31,7 @@ $aLangTxt = array(
     'versionError'=>'??',
     'versionUpdateAvailable'=>'Version %s verf&uuml;gbar',
     'versionManualCheck'=>'auf neue Version testen',
+    'lblUpdateUnusedVendorlibs'=>'Noch ein Hinweis: Bei Gelegenheit kann man %s Vendor-Bibliotheken l&ouml;schen.',
 
     'authAccessDenied'=>'<h1>Zugriff verweigert</h1>Benutzername und Passwort sind erforderlich.',
 
@@ -273,7 +273,9 @@ $aLangTxt = array(
             <br>
             Eine Server-Status-Seite per Klick und ohne Konfiguration
             anschauen - das geht, wenn diese im Internet sichtbar ist.<br>
-            Ziehe den nachfolgenden Link in deine Bookmarks: ',
+            Ziehe den nachfolgenden Button in deine Bookmarks: ',
+        'lblHelpBookmarkletLabel'=>'Pimped Apache Status <strong>Bookmarklet</strong>',
+        'lblHelpBookmarkletTitle'=>'Bitte in den Button in deine Bookmarks ziehen.',
     
         'lblHelpColors'=>'Einf&auml;rbung der Requests',
         'lblHintHelpColors'=>'
@@ -473,6 +475,7 @@ $aLangTxt = array(
         'AdminVendorRemote'=>'Remote',
         'AdminVendorLibLocalinstallations'=>'<strong>%s</strong> verwendete Bibliotheken gesamt - davon liegen <strong>%s</strong> lokal. Lade alle herunter, um die beste Performance zu haben.',
         'AdminVendorLibAllLocal'=>'Alle <strong>%s</strong> verwendeten Bibliotheken sind lokal.',
+        'AdminVendorLibDelete'=>'Lokale, nicht mehr benutze Bibliotheken: <strong>%s</strong>',
         'AdminVendorLibUnused'=>'nicht mehr verwendet',
     
         'AdminHintUpdates'=>'Update dieser Web-applikation.<br>',

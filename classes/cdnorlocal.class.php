@@ -9,10 +9,20 @@ namespace axelhahn;
  * you need just this class for your projects
  *
  * @example 
+ * 
+ * load a library from CDN
+ * <code>
  * $oCdn->new axelhahn\cdnorlocal();
  * echo $oCdn->getHtmlInclude("jquery/3.2.1/jquery.min.js");
+ * </code>
  * 
- * @version 1.0.1
+ * TODO:
+ * support jsdelivr, i.e.
+ * https://cdn.jsdelivr.net/npm/vis@4.21.0/dist/vis.min.js
+ * AND/ OR
+ * https://unpkg.com/
+ * 
+ * @version 1.0.8
  * @author Axel Hahn
  * @link https://www.axel-hahn.de
  * @license GPL
@@ -45,7 +55,24 @@ class cdnorlocal {
      * @var string
      */
     var $sCdnUrl='https://cdnjs.cloudflare.com/ajax/libs';
-    
+    var $aCdnUrls=array(
+        'cdnjs.cloudflare.com'=>array(
+            'about'=>'',
+            'url'=>'https://cdnjs.cloudflare.com/ajax/libs/[PKG]/[VERSION]/[FILE]',
+            'urlLatest'=>'https://cdnjs.cloudflare.com/ajax/libs/[PKG]/[VERSION]/[FILE]',
+        ),
+        /*
+        'cdn.jsdelivr.net'=>array(
+            'about'=>'',
+            'url'=>'https://cdn.jsdelivr.net/npm/[PKG]@[VERSION]/[FILE]',
+        ),
+        'unpkg.com'=>array(
+            'about'=>'',
+            'url'=>'https://unpkg.com/[PKG]@[VERSION]/[FILE]',
+        ),
+         */
+    );
+    protected $_sCdn=false;
 
     var $_aLibs=array();
     
@@ -82,6 +109,9 @@ class cdnorlocal {
             $this->setVendorUrl('/vendor');
             $this->setVendorDir($_SERVER['DOCUMENT_ROOT'].'/vendor');
         }
+        // $this->_sCdn=array_key_first($this->aCdnUrls);
+        reset($this->aCdnUrls);
+        $this->_sCdn=key($this->aCdnUrls);
     }
 
     /**
@@ -125,6 +155,22 @@ class cdnorlocal {
             ;
     }
     
+    /**
+     * set a CDN to deliver sources; returns true if the CDN is supported;
+     * returns false if CDN is not supported
+     * 
+     * @see getCdns() to get a list of supported CDNs
+     * 
+     * @param string $sNewCdn
+     * @return boolean
+     */
+    public function setCdn($sNewCdn){
+        if(array_key_exists($sNewCdn, $this->aCdnUrls)){
+            $this->_sCdn=$sNewCdn;
+            return true;
+        }
+        return false;
+    }
 
     /**
      * set a vendor url to use as link for libraries
@@ -137,9 +183,9 @@ class cdnorlocal {
         return $this->_bDebug=$sNewValue;
     }
     /**
-     * set a vendor dir to scan libraries
+     * set a vendor dir to scan libraries as relative path to the class
      * 
-     * @param string  $sNewValue  new local dir
+     * @param string  $sNewValue  new local dir; relative to the class file
      * @return string
      */
     public function setVendorWithRelpath($sRelpath){
@@ -149,9 +195,9 @@ class cdnorlocal {
         return true;
     }
     /**
-     * set a vendor dir to scan libraries
+     * set a vendor dir to scan libraries as full path
      * 
-     * @param string  $sNewValue   new local dir
+     * @param string  $sNewValue   new local dir; absolute path
      * @param boolean $bMustExist  optional flag: ensure that the directory exists
      * @return string
      */
@@ -197,6 +243,7 @@ class cdnorlocal {
                 'version' => $aTmp[1],
                 'relpath' => $sReldir,
                 'islocal' => !!$this->getLocalfile($sReldir),
+                'isunused'=>false,
                 'files'=>array(),
                 );
         } else {
@@ -210,6 +257,57 @@ class cdnorlocal {
         ksort($this->_aLibs);
         $this->_wd(__METHOD__ . " ... ".print_r($this->_aLibs, 1));
         return true;
+    }
+    
+    /**
+     * get array with a flat list of supported CDNs
+     * @return array
+     */
+    public function getCdns(){
+        return array_keys($this->aCdnUrls);
+    }
+    /**
+     * get array with a flat list of supported CDNs
+     * @return array
+     */
+    public function getCurrentCdn(){
+        return $this->_sCdn;
+    }
+    /**
+     * return array of all libs filtered by criteria
+     * 
+     * @example 
+     * 
+     *   get used libs that are local:
+     *   <code>$oCdn->getFilteredLibs(array('islocal'=>1));</code>
+     * 
+     *   get used libs that are loaded from CDN:
+     *   <code>$oCdn->getFilteredLibs(array('islocal'=>0));</code>
+     * 
+     *   get unused libs that are still local (and can be deleted)
+     *   <code>$oCdn->getFilteredLibs(array('islocal'=>1, 'isunused'=>1))</code>
+     * 
+     * @param array  $aFilter  array with filter items containing these keys:
+     *                         - islocal   true|false; default is false
+     *                         - isunused  true|false; default is false
+     * @return array
+     */
+    public function getFilteredLibs($aFilter=array()){
+        $this->_wd(__METHOD__ . "()");
+        $aReturn=array();
+        foreach(array('islocal', 'isunused') as $sKey){
+            $aFilter[$sKey]=isset($aFilter[$sKey]) ? $aFilter[$sKey] : false;
+        }
+        foreach($this->getLibs($aFilter['isunused']) as $sLibKey=>$aItem){
+            $bAdd=true;
+            foreach(array('islocal', 'isunused') as $sFilterKey){
+                $bAdd=$bAdd && ($aFilter[$sFilterKey]==$aItem[$sFilterKey]);
+            }
+            if($bAdd){
+                $aReturn[$sLibKey]=$aItem;
+            }
+        }
+        return $aReturn;
     }
     /**
      * return all libs from lib stack; with enabled flag entries in local 
@@ -227,13 +325,13 @@ class cdnorlocal {
                 $sMyLib=basename($sDir);
                 foreach(glob($this->sVendorDir.'/'.$sMyLib.'/*') as $sVersiondir){
                     $sMyVersion=basename($sVersiondir);
-                    if(!$aReturn[$sMyLib.'/'.$sMyVersion]){
+                    if(!isset($aReturn[$sMyLib.'/'.$sMyVersion]) || $aReturn[$sMyLib.'/'.$sMyVersion]){
                         $aReturn[$sMyLib.'/'.$sMyVersion]=array(
                             'lib'=>$sMyLib,
                             'version'=>$sMyVersion,
                             'relpath' => $sMyLib.'/'.$sMyVersion,
                             'islocal'=>1,
-                            'isunused'=>1,
+                            'isunused'=>!isset($this->_aLibs[$sMyLib.'/'.$sMyVersion]),
                         );
                     }
                 }
@@ -298,7 +396,34 @@ class cdnorlocal {
     // 
     // ----------------------------------------------------------------------
     
-
+    protected function _splitRelUrl($sRelUrl){
+        $aTmp= preg_match_all('#^(.*)/(.*)/(.*)$#U', $sRelUrl, $aMatches);
+        if(!count($aMatches)===4){
+            return false;
+        }
+        return array(
+            'pkg'=>$aMatches[1][0],
+            'version'=>$aMatches[2][0],
+            'file'=>$aMatches[3][0],
+        );
+    }
+    
+    public function getFullCdnUrl($sRelUrl, $sCdn=false){
+        $sReturn='';
+        if(!$sCdn){
+            $sCdn=$this->_sCdn;
+        }
+        $aSplits=$this->_splitRelUrl($sRelUrl);
+        $sTemplate=isset($this->aCdnUrls[$sCdn]['url']) ? $this->aCdnUrls[$sCdn]['url'] : false;
+        if(!$aSplits || !$sTemplate){
+            return false;
+        }
+        return str_replace(
+            array('[PKG]','[VERSION]','[FILE]'),
+            array($aSplits['pkg'], $aSplits['version'], $aSplits['file']),
+            $this->aCdnUrls[$sCdn]['url']
+        );
+    }
 
     /**
      * get full url based on relative filename. It returns the url of
@@ -318,9 +443,9 @@ class cdnorlocal {
      */
     public function getFullUrl($sRelUrl){
         return ($this->getLocalfile($sRelUrl)
-                ? $this->sVendorUrl
-                : $this->sCdnUrl
-                ).'/'.$sRelUrl;
+            ? $this->sVendorUrl.'/'.$sRelUrl
+            : $this->getFullCdnUrl($sRelUrl)
+        );
         
     }
     

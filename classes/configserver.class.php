@@ -36,7 +36,7 @@ class configServer {
      * init method; it loads the server config
      */
     public function __construct() {
-        $this->_oCfg = new confighandler($this->_sIdCfg);
+        $this->_oCfg = new axelhahn\confighandler($this->_sIdCfg);
         $this->_load();
     }
 
@@ -69,7 +69,7 @@ class configServer {
      * @return type
      */
     private function _load() {
-        $this->_aServer = $this->_oCfg->get();
+        $this->_aServer = $this->_oCfg->getFullConfig();
         if (!$this->_aServer || !count($this->_aServer)){
             $this->_initMinimalConfig();
             $this->_save();
@@ -140,7 +140,10 @@ class configServer {
      * @return array
      */
     public function getServers($sGroup) {
-        if (!array_key_exists($sGroup, $this->_aServer) || !array_key_exists('servers', $this->_aServer[$sGroup])
+        if (!array_key_exists($sGroup, $this->_aServer) ) {            
+            return array('result'=>false,'error'=>'group '.$sGroup.' does not exist.');
+        }
+        if (!array_key_exists('servers', $this->_aServer[$sGroup])
         ) {
             return array();
         }
@@ -157,12 +160,15 @@ class configServer {
      * @return type
      */
     public function getServerDetails($sGroup,$sId) {
-        if (!array_key_exists($sGroup, $this->_aServer) 
-                || !array_key_exists('servers', $this->_aServer[$sGroup])
+        if (!array_key_exists($sGroup, $this->_aServer) ) {            
+            return array('result'=>false,'error'=>'group '.$sGroup.' does not exist.');
+        }
+        if (!array_key_exists('servers', $this->_aServer[$sGroup])
                 || !array_key_exists($sId, $this->_aServer[$sGroup]['servers'])
         ) {
-            return array();
+            return array('result'=>false,'error'=>'server '.$sId.' does not exist.');
         }
+
         $aReturn=$this->_aServer[$sGroup]['servers'][$sId];
         
         if (!array_key_exists('label', $aReturn)){
@@ -213,7 +219,7 @@ class configServer {
             return array('result'=>false, 'error'=>'old label is required');
         }
         if(!array_key_exists($aItem['oldlabel'], $this->_aServer)){
-            return array('result'=>false, 'error'=>'old label does not exist');
+            return array('result'=>false, 'error'=>'group ['.$aItem['oldlabel'].'] does not exist');
         }
         
         // remove key
@@ -233,8 +239,11 @@ class configServer {
      * @return array
      */
     public function setGroup($aItem){
-        if(!array_key_exists('oldlabel', $aItem)){
+        if(!isset($aItem['oldlabel'])){
             return array('result'=>false, 'error'=>'old label is required');
+        }
+        if(!isset($this->_aServer[$aItem['oldlabel']])){
+            return array('result'=>false, 'error'=>'server '.$aItem['oldlabel'].' does not exist');
         }
         
         $aTmp=$this->_aServer[$aItem['oldlabel']];
@@ -282,7 +291,11 @@ class configServer {
     /**
      * add a new server; it returns an array with the keys
      * return (true/ false) and error (error message)
-     * @param array $aItem
+     * @param array $aItem  array with server data; keys are
+     *                      - group         server group
+     *                      - label         hostname
+     *                      - status-url    server status url
+     *                      - userpwd       optional basic authentication in syntax "user:password"
      * @return array
      */
     public function addServer($aItem){
@@ -310,7 +323,8 @@ class configServer {
     /**
      * delete a server entry of a group; it returns an array with the keys
      * return (true/ false) and error (error message)
-     * @param array $aItem
+     * @param array $aItem  server item to delete; the key to be deleted must be
+     *                      "oldlabel"
      * @return array
      */
     public function deleteServer($aItem){
@@ -390,9 +404,9 @@ class configServer {
             $sHtml.='<div class="divGroup" id="'.$this->getDivId($sGroup).'">'
                     . '<h4>'
                     . '<button class="btn btn-default" onclick="$(\'.divFrm\').hide();$(\'#'.$sFormId.'\').slideToggle();">'
-                    . '<i class="fa fa-pencil"></i> ' . $aLangTxt['ActionEdit']
+                    . '<i class="fas fa-pencil-alt"></i> ' . $aLangTxt['ActionEdit']
                     . '</button> '
-                    . '<i class="fa fa-cubes"></i> '
+                    . '<i class="fas fa-cubes"></i> '
                     . $sGroup .' <span class="badge">'.count($this->getServers($sGroup)).'</span>'
                     . '</h4>'
                     ;
@@ -418,7 +432,7 @@ class configServer {
                 . '</div>';
         
         $sHtml.='<button type="submit" class="btn '.$sSubmitClass.'" title="'.$aLangTxt['ActionOKHint'].'"'
-                . '><i class="fa fa-check"></i> '.$aLangTxt['ActionOK'].'</button>'
+                . '><i class="fas fa-check"></i> '.$aLangTxt['ActionOK'].'</button>'
                 . '</form>'
                 ;
         
@@ -428,7 +442,7 @@ class configServer {
             . '<input type="hidden" name="appaction" value="deletegroup"/>'
             . '<input type="hidden" name="oldlabel" value="'.$sGroup.'"/>'
             . '<button type="submit" class="btn btn-danger" title="'.$aLangTxt['ActionDeleteHint'].'"'
-            . '><i class="fa fa-close"></i> '.$aLangTxt['ActionDelete'].'</button>'
+            . '><i class="fas fa-trash"></i> '.$aLangTxt['ActionDelete'].'</button>'
             . '</form>'
             ;            
         } 
@@ -485,7 +499,7 @@ class configServer {
                     . '<button class="btn btn-default" onclick="$(\'.divFrm\').hide();$(\'#'.$sFormId.'\').slideToggle();">'
                     . $aCfg['icons']['actionEdit'] . $aLangTxt['ActionEdit']
                     . '</button>'
-                    . ' <strong><i class="fa fa-hdd-o"></i> '.$aSrv['label'].'</strong>'
+                    . ' <strong><i class="far fa-hdd"></i> '.$aSrv['label'].'</strong>'
                     . ' ('.$aSrv['status-url'].')'
                     . ''
                     ;
@@ -532,7 +546,7 @@ class configServer {
             . '<input type="hidden" name="group" value="'.$sGroup.'"/>'
             . '<input type="hidden" name="oldlabel" value="'.$sId.'"/>'
             . '<button type="submit" class="btn btn-danger" title="'.$aLangTxt['ActionDeleteHint'].'"'
-            . '><i class="fa fa-close"></i> '.$aLangTxt['ActionDelete'].'</button>'
+            . '><i class="fas fa-trash"></i> '.$aLangTxt['ActionDelete'].'</button>'
             . '</form></div>'
             ; 
              * 

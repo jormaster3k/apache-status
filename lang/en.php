@@ -1,6 +1,4 @@
 <?php
-
-global $aLangTxt;
 $aLangTxt = array(
     
     'id'=>'english',
@@ -33,6 +31,7 @@ $aLangTxt = array(
     'versionError'=>'??',
     'versionUpdateAvailable'=>'Version %s is available',
     'versionManualCheck'=>'check for a new version',
+    'lblUpdateUnusedVendorlibs'=>'One more hint: on occasion you can delete %s unused vendor libs.',
     
     'authAccessDenied'=>'<h1>Access denied.</h1>User and password are required.',
     
@@ -269,7 +268,9 @@ $aLangTxt = array(
             <br>
             If a server-status page is available in the public internet you can
             use a bookmarklet to view it here. Without any configuration.<br>
-            Drag and drop the following link to your bookmarks: ',
+            Drag and drop the following button to your bookmarks: ',
+        'lblHelpBookmarkletLabel'=>'Pimped Apache Status <strong>Bookmarklet</strong>',
+        'lblHelpBookmarkletTitle'=>'Drag and drop me into the browsers bookmarks.',
         
         'lblHelpColors'=>'Colors of the request rows',
         'lblHintHelpColors'=>'
@@ -467,6 +468,7 @@ $aLangTxt = array(
         'AdminVendorRemote'=>'Remote',
         'AdminVendorLibLocalinstallations'=>'<strong>%s</strong> libs are in use and <strong>%s</strong> of them are local. Download all libs for best performance.',
         'AdminVendorLibAllLocal'=>'All <strong>%s</strong> used libs are local.',
+        'AdminVendorLibDelete'=>'Unused local libs: <strong>%s</strong>',
         'AdminVendorLibUnused'=>'not used anymore',
     
         'AdminHintUpdates'=>'Update this web application.<br>',

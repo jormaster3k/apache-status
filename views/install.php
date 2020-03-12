@@ -42,7 +42,7 @@ $aTC[] = array(
                 . '<input class="form-control" name="pw2" type="password" value="" placeholder="">'
             . '</div>'
         . '</div>'
-    . '<button class="btn btn-primary" type="submit"><i class="fa fa-check"></i> '.$aLangTxt['ActionOK'].'</button>'
+    . '<button class="btn btn-primary" type="submit"><i class="fas fa-check"></i> '.$aLangTxt['ActionOK'].'</button>'
     . '<div style="clear: both"></div>'
     . '</form>'
     ,
@@ -55,7 +55,7 @@ $aTC[] = array(
                 . '<input name="username" type="hidden" value="'.$sDummyUser.'">'
                 . '<input name="pw1" type="hidden" value="" >'
                 . '<input name="pw2" type="hidden" value="" >'
-        . '<button class="btn btn-primary" type="submit"><i class="fa fa-check"></i> '.$aLangTxt['lblInitialSetupTab2'].'</button>'
+        . '<button class="btn btn-primary" type="submit"><i class="fas fa-check"></i> '.$aLangTxt['lblInitialSetupTab2'].'</button>'
     . '</form>'
 );
 
@@ -74,7 +74,7 @@ if(is_array($_POST) && count($_POST)){
             || ($_POST['username']===$sDummyUser && !$_POST['pw1'] && !$_POST['pw2'])
         )
     ){
-        $dummy=$oCfg->get("config_user");
+        $dummy=$oCfg->getFullConfig("config_user");
         $aUsersetup=array(
             'auth'=>array(
                 'user'=>$_POST['username']
